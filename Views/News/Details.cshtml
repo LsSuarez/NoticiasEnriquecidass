@@ -1,0 +1,56 @@
+@model NewsPortal.Models.Post
+
+<div class="container mt-4">
+    <h2 class="mb-3">@Model.title</h2>
+    <p>@Model.body</p>
+
+    <h4 class="mt-5">Autor</h4>
+    @{
+        var author = ViewData["Author"] as NewsPortal.Models.User;
+    }
+    <p>@(author?.name ?? "Autor desconocido")</p>
+
+    <h4 class="mt-4">Comentarios</h4>
+    <ul class="list-group">
+        @foreach (var comment in (List<NewsPortal.Models.Comment>)ViewData["Comments"])
+        {
+            <li class="list-group-item">
+                <strong>@comment.name:</strong> @comment.body
+            </li>
+        }
+    </ul>
+
+    <h4 class="mt-4">Feedback</h4>
+    <div class="d-flex gap-2 flex-wrap">
+        <button id="likeBtn" class="btn btn-success flex-fill">👍 Me gustó</button>
+        <button id="dislikeBtn" class="btn btn-danger flex-fill">👎 No me gustó</button>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    const postId = @Model.id;
+
+    document.getElementById("likeBtn").addEventListener("click", () => sendFeedback("like"));
+    document.getElementById("dislikeBtn").addEventListener("click", () => sendFeedback("dislike"));
+
+    async function sendFeedback(sentimiento) {
+        try {
+            const response = await fetch('/api/feedback', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ postId: postId, sentimiento: sentimiento })
+            });
+
+            if (response.ok) {
+                alert('Gracias por tu feedback!');
+            } else {
+                const errorText = await response.text();
+                alert('No se pudo enviar el feedback. Error: ' + errorText);
+            }
+        } catch (error) {
+            alert('No se pudo enviar el feedback. Error de red: ' + error.message);
+        }
+    }
+</script>
+}
